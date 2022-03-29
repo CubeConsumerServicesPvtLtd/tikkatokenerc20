@@ -16,11 +16,13 @@ contract TikkaToken is
 {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
 
-    constructor() ERC20("Cube Tikka Token", "TIKKA") {
+    constructor(address childChainManager) ERC20("Cube Tikka Token", "TIKKA") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(PAUSER_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
+        _grantRole(DEPOSITOR_ROLE, childChainManager);
     }
 
     /**
@@ -34,7 +36,7 @@ contract TikkaToken is
     function deposit(address user, bytes calldata depositData)
         external
         override
-    // only(DEPOSITOR_ROLE)
+        onlyRole(DEPOSITOR_ROLE)
     {
         uint256 amount = abi.decode(depositData, (uint256));
         _mint(user, amount);
