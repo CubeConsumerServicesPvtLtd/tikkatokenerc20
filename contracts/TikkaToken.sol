@@ -2,14 +2,15 @@
 pragma solidity ^0.8.2;
 
 import "./IChildToken.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "./IMintableERC20.sol";
+
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract TikkaToken is
     IChildToken,
-    ERC20,
+    IMintableERC20,
     ERC20Burnable,
     Pausable,
     AccessControl
@@ -59,7 +60,11 @@ contract TikkaToken is
         _unpause();
     }
 
-    function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
+    function mint(address to, uint256 amount)
+        public
+        override
+        onlyRole(MINTER_ROLE)
+    {
         _mint(to, amount);
     }
 
