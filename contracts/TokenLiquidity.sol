@@ -11,16 +11,16 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
  * @title TokenLiquidity
- * 
- * @dev provides the core function of creating and managing a liquidity schedule for 
+ *
+ * @dev provides the core function of creating and managing a liquidity schedule for
  * an ERC-20 token.
  *
- * A liquidity schedule is created to make a limited number of tokens available in parts to 
+ * A liquidity schedule is created to make a limited number of tokens available in parts to
  * the beneficiary at regular intervals (called term).
  *
- * As a security measure, the contract should be insulated under a facade contract by 
+ * As a security measure, the contract should be insulated under a facade contract by
  * transferring ownership of this contract to the facade contract.
- * 
+ *
  */
 contract TokenLiquidity is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
@@ -149,12 +149,6 @@ contract TokenLiquidity is Ownable, ReentrancyGuard {
      */
     function getToken() external view returns (address) {
         return address(_token);
-    }
-
-    function createTeamSchedule(address forBeneficiary, uint256 startTime)
-        external
-    {
-        createLiquiditySchedule(forBeneficiary, startTime, 0, 100, 10, true, 5);
     }
 
     /**
