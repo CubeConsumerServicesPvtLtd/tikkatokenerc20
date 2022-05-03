@@ -382,7 +382,6 @@ contract TokenLiquidity is Ownable, ReentrancyGuard {
             uint256 timeFromStart = currentTime.sub(liquiditySchedule.start);
             uint256 termSeconds = liquiditySchedule.termSeconds;
             uint256 termsElapsed = timeFromStart.div(termSeconds);
-            uint256 vestedSeconds = termsElapsed.mul(termSeconds);
             uint256 liquidatedAmount = liquiditySchedule.liquidityPerTerm.mul(
                 termsElapsed
             );
