@@ -10,8 +10,14 @@ contract DappTokenSale {
     address payable admin;
     string public saleName;
     LiquidityPrograms private immutable liquidityProgramsContract;
-    IERC20 private immutable phantomContract;
-    uint256 public tokenPrice;
+
+    IERC20 private immutable usdcContract =
+        IERC20(0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174);
+    IERC20 private immutable daiContract =
+        IERC20(0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063);
+
+    uint256 public daiTokenPrice;
+    uint256 public usdcTokenPrice;
     uint256 public tokensSold;
     uint256 public tokensCap;
 
@@ -20,8 +26,8 @@ contract DappTokenSale {
     constructor(
         string memory _saleName,
         address _liquidityProgramsContract,
-        address _phantomContract,
-        uint256 _tokenPrice,
+        uint256 _daiTokenPrice,
+        uint256 _usdcTokenPrice,
         uint256 _tokensCap
     ) {
         admin = payable(msg.sender);
@@ -29,8 +35,8 @@ contract DappTokenSale {
         liquidityProgramsContract = LiquidityPrograms(
             _liquidityProgramsContract
         );
-        phantomContract = IERC20(_phantomContract);
-        tokenPrice = _tokenPrice;
+        daiTokenPrice = _daiTokenPrice;
+        usdcTokenPrice = _usdcTokenPrice;
         tokensCap = _tokensCap;
     }
 
@@ -38,20 +44,54 @@ contract DappTokenSale {
         require(y == 0 || (z = x * y) / y == x);
     }
 
-    function buyTokens(uint256 _numberOfTokens) public payable {
-        // require(msg.value == multiply(_numberOfTokens, tokenPrice));
-        uint256 amount = multiply(_numberOfTokens, tokenPrice);
+    modifier ifTikkaAvailable(uint256 _numberOfTokens) {
         require(
-            amount <= tokensCap - tokensSold,
+            _numberOfTokens <= tokensCap - tokensSold,
             "Tokens exhausted for the sale"
         );
+        _;
+    }
+
+    function buyTokensWithDAI(uint256 _numberOfTokens)
+        public
+        payable
+        ifTikkaAvailable(_numberOfTokens)
+    {
+        uint256 orderPrice = multiply(_numberOfTokens, daiTokenPrice);
         require(
-            phantomContract.allowance(msg.sender, address(this)) >= amount,
-            "No allowance from buyer for Phantom"
+            daiContract.allowance(msg.sender, address(this)) >= orderPrice,
+            "No allowance from buyer for DAI"
         );
         require(
-            phantomContract.transferFrom(msg.sender, address(this), amount),
-            "Couldn't transfer Phantom Coins to Dapp"
+            daiContract.transferFrom(msg.sender, address(this), orderPrice),
+            "Couldn't transfer DAI Coins to Dapp"
+        );
+        uint256 startTime = block.timestamp;
+
+        liquidityProgramsContract.createPrivateSaleLiquiditySchedule(
+            msg.sender,
+            startTime,
+            _numberOfTokens
+        );
+
+        tokensSold += _numberOfTokens;
+
+        emit Sale(saleName, msg.sender, _numberOfTokens);
+    }
+
+    function buyTokensWithUSDC(uint256 _numberOfTokens)
+        public
+        payable
+        ifTikkaAvailable(_numberOfTokens)
+    {
+        uint256 orderPrice = multiply(_numberOfTokens, usdcTokenPrice);
+        require(
+            usdcContract.allowance(msg.sender, address(this)) >= orderPrice,
+            "No allowance from buyer for USDC"
+        );
+        require(
+            usdcContract.transferFrom(msg.sender, address(this), orderPrice),
+            "Couldn't transfer USDC Coins to Dapp"
         );
         uint256 startTime = block.timestamp;
 
